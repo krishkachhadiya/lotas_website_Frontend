@@ -1,0 +1,75 @@
+import { useMemo } from "react";
+import JoditEditor from "jodit-react";
+
+export default function TextEditor({
+  value = "",
+  onChange,
+  height = 400,
+}) {
+  const config = useMemo(
+    () => ({
+      readonly: false,
+      height,
+      toolbarAdaptive: false,
+      toolbarSticky: false,
+      spellcheck: true,
+      showXPath: false,
+      showCharsCounter: true,
+      showWordsCounter: true,
+      allowResizeY: true,
+
+      buttons: [
+        "source",
+        "|",
+        "bold",
+        "italic",
+        "underline",
+        "strikethrough",
+        "|",
+        "superscript",
+        "subscript",
+        "|",
+        "font",
+        "fontsize",
+        "|",
+        "brush",
+        "paragraph",
+        "|",
+        "ul",
+        "ol",
+        "|",
+        "outdent",
+        "indent",
+        "|",
+        "align",
+        "|",
+        "link",
+        "image",
+        "video",
+        "table",
+        "|",
+        "hr",
+        "|",
+        "copyformat",
+        "|",
+        "undo",
+        "redo",
+        "|",
+        "fullsize",
+        "|",
+        "print",
+        "|",
+        "preview",
+      ],
+    }),
+    [height]
+  );
+
+  return (
+    <JoditEditor
+      value={value}
+      config={config}
+      onBlur={onChange}
+    />
+  );
+}
