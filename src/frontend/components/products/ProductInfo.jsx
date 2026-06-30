@@ -24,7 +24,7 @@ export default function ProductInfo({ product }) {
         <div className="grid md:grid-cols-2 gap-4 mt-8">
           {/* Product ID */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
-            <p className="text-sm text-gray-500">Product ID</p>
+            <p className="text-sm text-gray-500">Product Code</p>
 
             <p className="mt-2 font-semibold text-[#1D3549]">
               {product.productId || product._id}
