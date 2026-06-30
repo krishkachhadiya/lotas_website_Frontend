@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { setSEO } from "../utils/seo";
-import ProductsBanner from "../components/products/ProductsBanner";
 import ProductsContent from "../components/products/ProductsContent";
 
 const API_URL =
@@ -60,8 +59,7 @@ export default function Products() {
 
   return (
     <>
-      <ProductsBanner cmsData={cmsData} />
-      <ProductsContent />
+      <ProductsContent  cmsData={cmsData}/>
     </>
   );
 }

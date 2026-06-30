@@ -75,7 +75,7 @@ export default function ProductDetailsContent({ slug }) {
               : [],
 
             sku:
-              found.sku || found._id || "",
+              found.sku || found.productId|| "",
 
             brand: {
               "@type": "Brand",

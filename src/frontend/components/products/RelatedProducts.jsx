@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { getRootCategoryId } from "../../../lib/category-tree"; // <-- adjust path if needed
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
@@ -11,6 +12,7 @@ const BACKEND_URL =
 
 export default function RelatedProducts({ product }) {
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   function getProductImageUrl(imagePath) {
     if (!imagePath || typeof imagePath !== "string") {
@@ -32,37 +34,72 @@ export default function RelatedProducts({ product }) {
   }
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchData() {
       try {
-        const response = await fetch(
-          `${API_URL}/products`
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch(`${API_URL}/products`),
+          fetch(`${API_URL}/categories`),
+        ]);
+
+        const productsResult = await productsRes.json();
+        const categoriesResult = await categoriesRes.json();
+
+        const products = Array.isArray(productsResult)
+          ? productsResult
+          : productsResult.data || [];
+
+        const allCategories = Array.isArray(categoriesResult)
+          ? categoriesResult
+          : categoriesResult.data || [];
+
+        setCategories(allCategories);
+
+        // Current Product Category
+        const currentCategoryId =
+          product.subcategory?._id ||
+          product.subcategory ||
+          product.category?._id ||
+          product.category;
+
+        const currentRootId = getRootCategoryId(
+          allCategories,
+          currentCategoryId
         );
 
-        const result = await response.json();
+        const related = products.filter((item) => {
+          if (
+            String(item._id || item.id) ===
+            String(product._id || product.id)
+          ) {
+            return false;
+          }
 
-        const products = Array.isArray(result)
-          ? result
-          : result.data || [];
+          if (item.status !== "active") {
+            return false;
+          }
 
-        const related = products.filter(
-          (item) =>
-            item.subcategory?.toLowerCase() ===
-              product.subcategory?.toLowerCase() &&
-            (item._id || item.id) !==
-              (product._id || product.id) &&
-            item.status === "active"
-        );
+          const itemCategoryId =
+            item.subcategory?._id ||
+            item.subcategory ||
+            item.category?._id ||
+            item.category;
 
-        setRelatedProducts(
-          related.slice(0, 4)
-        );
+          const itemRootId = getRootCategoryId(
+            allCategories,
+            itemCategoryId
+          );
+
+          return String(itemRootId) === String(currentRootId);
+        });
+
+        setRelatedProducts(related.slice(0, 4));
       } catch (error) {
         console.error(error);
       }
     }
 
     if (product) {
-      fetchProducts();
+      fetchData();
     }
   }, [product]);
 
@@ -85,27 +122,20 @@ export default function RelatedProducts({ product }) {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-          {relatedProducts.map((item, index) => (
+          {relatedProducts.map((item) => (
             <div
-              key={`${item._id || item.id}-${index}`}
+              key={item._id || item.id}
               className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition"
             >
-
-              {/* Image */}
               <div className="h-56 overflow-hidden">
                 <img
-                  src={getProductImageUrl(
-                    item.images?.[0]
-                  )}
+                  src={getProductImageUrl(item.images?.[0])}
                   alt={item.title}
                   className="w-full h-full object-cover"
                 />
               </div>
 
-              {/* Content */}
               <div className="p-5">
-
                 <h3 className="text-lg font-semibold text-[#1D3549] line-clamp-2">
                   {item.title}
                 </h3>
@@ -121,13 +151,11 @@ export default function RelatedProducts({ product }) {
                 >
                   View Details →
                 </Link>
-
               </div>
-
             </div>
           ))}
-
         </div>
+
       </div>
     </section>
   );
