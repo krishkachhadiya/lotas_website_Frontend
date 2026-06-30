@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function ContactForm() {
+  const recaptchaRef = useRef(null);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -10,6 +13,9 @@ export default function ContactForm() {
     subject: "",
     message: "",
   });
+
+  // State to track the generated token from Google
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -21,6 +27,18 @@ export default function ContactForm() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Callback when a user completes the reCAPTCHA challenge
+  const handleCaptchaChange = (token) => {
+    setCaptchaToken(token);
+    // Clear any previous captcha validation error if it exists
+    if (token) {
+      setErrors((prev) => {
+        const { captcha, ...rest } = prev;
+        return rest;
+      });
+    }
   };
 
   const validate = () => {
@@ -50,6 +68,11 @@ export default function ContactForm() {
       newErrors.message = "Message is required";
     }
 
+    // Check if the captcha has been checked
+    if (!captchaToken) {
+      newErrors.captcha = "Please complete the captcha verification";
+    }
+
     return newErrors;
   };
 
@@ -76,13 +99,17 @@ export default function ContactForm() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          // Append the token to the request payload for your backend controller
+          body: JSON.stringify({
+            ...formData,
+            captchaToken,
+          }),
         }
       );
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         setSuccessMessage("Inquiry submitted successfully.");
         setFormData({
           name: "",
@@ -91,11 +118,20 @@ export default function ContactForm() {
           subject: "",
           message: "",
         });
+        
+        // Reset the reCAPTCHA widget UI and clear state token
+        setCaptchaToken(null);
+        recaptchaRef.current?.reset();
       } else {
-        setErrorMessage(data.message);
+        setErrorMessage(data.message || "Verification failed.");
+        // Reset captcha on failure so users can retry a clean session
+        setCaptchaToken(null);
+        recaptchaRef.current?.reset();
       }
     } catch (error) {
       setErrorMessage("Something went wrong.");
+      setCaptchaToken(null);
+      recaptchaRef.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -186,6 +222,18 @@ export default function ContactForm() {
             />
             {errors.message && (
               <p className="text-red-500 text-sm mt-1">{errors.message}</p>
+            )}
+          </div>
+
+          {/* Google reCAPTCHA v2 Display Box */}
+          <div className="mt-6 flex flex-col items-start">
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+              onChange={handleCaptchaChange}
+            />
+            {errors.captcha && (
+              <p className="text-red-500 text-sm mt-1">{errors.captcha}</p>
             )}
           </div>
 
