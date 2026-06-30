@@ -7,12 +7,13 @@ import { createSlug, generateSlug, isValidSlug } from "../../../lib/slug";
 import CategoryPicker from "../../../components/CategoryPicker";
 
 export default function AddProductPage() {
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // ======================
   // STATES
   // ======================
   const [categories, setCategories] = useState([]);
+  const [productIdExists, setProductIdExists] = useState(false);
   const [existingProducts, setExistingProducts] = useState([]);
   const [productExists, setProductExists] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -20,6 +21,7 @@ const navigate = useNavigate();
   const [slugExists, setSlugExists] = useState(false);
 
   const [formData, setFormData] = useState({
+    productId: "",
     title: "",
     slug: "",
     description: "",
@@ -195,7 +197,7 @@ const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-10 w-full">
       <div className="max-w-5xl mx-auto bg-white rounded-2xl md:rounded-3xl shadow-xl p-5 md:p-10">
-        
+
         {/* Header */}
         <div className="mb-6 md:mb-10">
           <h1 className="text-3xl md:text-5xl font-bold text-gray-900">
@@ -208,7 +210,38 @@ const navigate = useNavigate();
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
-          
+
+          {/* Product ID */}
+          {/* Product ID */}
+          <div>
+            <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2 md:mb-3">
+              Product ID *
+            </label>
+
+            {productIdExists && (
+              <p className="text-red-500 text-sm mt-2">
+                Product ID already exists
+              </p>
+            )}
+
+            <input
+              required
+              type="text"
+              value={formData.productId}
+              onChange={(e) => {
+                const value = e.target.value;
+                const exists = existingProducts.some(
+                  (item) =>
+                    item.productId?.trim().toLowerCase() ===
+                    value.trim().toLowerCase()
+                );
+                setProductIdExists(exists);
+                setFormData({ ...formData, productId: value, });
+              }}
+              className="w-full border border-gray-300 bg-white text-black p-3.5 md:p-4 rounded-xl outline-none focus:ring-2 focus:ring-black text-sm md:text-base"
+            />
+          </div>
+
           {/* Product Title */}
           <div>
             <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2 md:mb-3">
@@ -452,7 +485,7 @@ const navigate = useNavigate();
 
           {/* Submit */}
           <button
-            disabled={productExists || slugExists}
+            disabled={productIdExists || productExists || slugExists}
             className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-xl text-base md:text-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create Product
