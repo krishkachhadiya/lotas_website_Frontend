@@ -232,7 +232,7 @@ export default function EditProductPage() {
           {/* Product ID */}
           <div>
             <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2 md:mb-3">
-              Product ID *
+              Product Code *
             </label>
 
             {productIdExists && (
