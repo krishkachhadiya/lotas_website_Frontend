@@ -23,7 +23,7 @@ export default function ProductSidebarInfo({ product }) {
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
             <p className="text-sm text-gray-500">Product Code</p>
             <p className="mt-2 font-semibold text-[#1D3549] truncate">
-              {product?.productId || product?._id}
+              {product?.productCode || product?._id}
             </p>
           </div>
 
