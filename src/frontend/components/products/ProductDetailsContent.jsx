@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import ProductBreadcrumb from "./ProductBreadcrumb";
 import ProductInfo from "./ProductInfo";
 import ProductGallery from "./ProductGallery";
-import ProductSpecifications from "./ProductSpecifications";
 import ProductDescription from "./ProductDescription";
 import RelatedProducts from "./RelatedProducts";
 
@@ -75,7 +74,7 @@ export default function ProductDetailsContent({ slug }) {
               : [],
 
             sku:
-              found.sku || found.productId|| "",
+              found.sku || found.productId || "",
 
             brand: {
               "@type": "Brand",
@@ -115,7 +114,7 @@ export default function ProductDetailsContent({ slug }) {
       </section>
     );
   }
-console.log(product);
+  console.log(product);
   return (
     <>
       <section className="py-12 bg-gray-50">
@@ -123,15 +122,18 @@ console.log(product);
 
           <ProductBreadcrumb product={product} />
 
-          <div className="grid lg:grid-cols-2 gap-10 mt-8">
-            <ProductGallery product={product} />
-            <ProductInfo product={product} />
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mt-8 overflow-visible">
+            <div className="lg:col-span-7 w-full">
+              <ProductGallery product={product} />
+            </div>
 
+            <div className="lg:col-span-5 lg:sticky lg:top-6 h-fit w-full overflow-visible z-10">
+            <ProductInfo product={product} />
+            </div>
+          </div>
         </div>
       </section>
 
-      <ProductSpecifications product={product} />
       <ProductDescription product={product} />
       <RelatedProducts product={product} />
     </>

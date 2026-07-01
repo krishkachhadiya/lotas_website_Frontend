@@ -3,23 +3,12 @@ import { useState, useEffect, useRef } from "react";
 export default function ProductGallery({ product }) {
   const BACKEND_URL = import.meta.env.VITE_SITE_URL || "http://localhost:5000";
 
-  const [activeImage, setActiveImage] = useState("");
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState(0);
-  
-  // Animation state (controls opacity class)
   const [isFading, setIsFading] = useState(false);
 
-  // Swipe gesture tracking
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
-
-  useEffect(() => {
-    if (product?.images?.length > 0) {
-      setActiveImage(product.images[0]);
-      setCurrentImage(0);
-    }
-  }, [product]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -28,7 +17,6 @@ export default function ProductGallery({ product }) {
       if (e.key === "ArrowLeft") triggerImageChange("prev");
       if (e.key === "Escape") closeGallery();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [galleryOpen, currentImage]);
@@ -43,14 +31,9 @@ export default function ProductGallery({ product }) {
     return path.startsWith("http") ? path : `${BACKEND_URL}${path.startsWith("/") ? "" : "/"}${path}`;
   }
 
-  // Pure CSS Fade Animation Wrapper
   const triggerImageChange = (directionOrIndex) => {
     if (!product?.images?.length) return;
-    
-    // 1. Start fading out
     setIsFading(true);
-
-    // 2. Wait for fade-out transition to complete (200ms), then swap data
     setTimeout(() => {
       let nextIndex = currentImage;
       if (directionOrIndex === "next") {
@@ -60,113 +43,78 @@ export default function ProductGallery({ product }) {
       } else {
         nextIndex = directionOrIndex;
       }
-
       setCurrentImage(nextIndex);
-      setActiveImage(product.images[nextIndex]);
-      
-      // 3. Fade back in
       setIsFading(false);
-    }, 200); 
+    }, 150);
   };
 
   const openGallery = (index) => {
     setCurrentImage(index);
-    setActiveImage(product.images[index]);
     setGalleryOpen(true);
   };
 
   const closeGallery = () => setGalleryOpen(false);
 
-  // Mobile Swipe Handlers
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
+  const handleTouchStart = (e) => { touchStartX.current = e.targetTouches[0].clientX; };
+  const handleTouchMove = (e) => { touchEndX.current = e.targetTouches[0].clientX; };
 
   const handleTouchEnd = () => {
     if (!touchStartX.current || !touchEndX.current) return;
     const distance = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50; 
-
-    if (distance > minSwipeDistance) {
-      triggerImageChange("next"); // Swipe Left -> Next
-    } else if (distance < -minSwipeDistance) {
-      triggerImageChange("prev"); // Swipe Right -> Prev
-    }
-
+    if (distance > 50) triggerImageChange("next");
+    else if (distance < -50) triggerImageChange("prev");
     touchStartX.current = 0;
     touchEndX.current = 0;
   };
 
   return (
     <>
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
-            
-            {/* Main Image Viewport with Native Swipe & CSS Transition */}
-            <div 
-              className="h-[320px] md:h-[420px] rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center relative touch-pan-y"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-            >
-              <img
-                src={getFullUrl(activeImage)}
-                alt={product?.title}
-                onClick={() => openGallery(currentImage)}
-                className={`max-w-full max-h-full object-contain p-4 cursor-zoom-in transition-all duration-200 ease-in-out ${
-                  isFading ? "opacity-0 scale-95" : "opacity-100 scale-100"
-                }`}
-              />
-            </div>
+      {/* SHOPIFY DAWN GALLERY SYSTEM:
+        On Desktop, all images stack visibly down the column.
+        The 1st image spans wide across 2 columns, others tile beautifully side-by-side.
+      */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+        {product?.images && product.images.length > 0 ? (
+          product.images.map((image, index) => {
+            // Shopify Grid Logic: First image gets full row view. The rest stay side-by-side.
+            const isFirstImage = index === 0;
 
-            {/* Thumbnails */}
-            {product?.images?.length > 1 && (
-              <div className="flex flex-wrap gap-3 mt-6 justify-center">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => triggerImageChange(index)}
-                    className={`w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
-                      activeImage === image
-                        ? "border-[#1CA16B] shadow-md scale-105"
-                        : "border-gray-200 hover:border-[#1CA16B]"
-                    }`}
-                  >
-                    <img src={getFullUrl(image)} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
+            return (
+              <div
+                key={index}
+                onClick={() => openGallery(index)}
+                className={`overflow-hidden rounded-md bg-[#F3F3F3] border border-gray-100 cursor-zoom-in group ${isFirstImage ? "col-span-1 md:col-span-2" : "col-span-1"
+                  }`}
+              >
+                <img
+                  src={getFullUrl(image)}
+                  alt={`${product?.title || "Product"} view ${index + 1}`}
+                  className="w-full h-auto object-cover max-h-[70vh] mix-blend-multiply transition-transform duration-500 group-hover:scale-101"
+                />
               </div>
-            )}
+            );
+          })
+        ) : (
+          <div className="col-span-2 border border-dashed border-gray-200 rounded-xl h-96 flex items-center justify-center bg-gray-50">
+            <img src="/no-image.png" alt="No media" className="max-h-24 opacity-30" />
           </div>
-        </div>
-      </section>
+        )}
+      </div>
 
-      {/* Fullscreen Overlay Gallery */}
+      {/* Fullscreen Zoom Lightbox Overlay */}
       {galleryOpen && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
-          <button
-            onClick={closeGallery}
-            className="absolute top-6 right-6 text-white text-4xl p-2 hover:text-gray-300 z-50"
-          >
-            &times;
-          </button>
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+          <button onClick={closeGallery} className="absolute top-6 right-6 text-white text-4xl p-2 hover:opacity-70 z-50">&times;</button>
 
-          {/* Desktop Navigation */}
           {product?.images?.length > 1 && (
             <>
-              <button onClick={() => triggerImageChange("prev")} className="absolute left-5 text-white text-5xl hover:text-gray-300 z-50 hidden md:block select-none">&#10094;</button>
-              <button onClick={() => triggerImageChange("next")} className="absolute right-5 text-white text-5xl hover:text-gray-300 z-50 hidden md:block select-none">&#10095;</button>
+              <button onClick={() => triggerImageChange("prev")} className="absolute left-5 text-white text-4xl hover:opacity-70 z-50 hidden md:block select-none">&#10094;</button>
+              <button onClick={() => triggerImageChange("next")} className="absolute right-5 text-white text-4xl hover:opacity-70 z-50 hidden md:block select-none">&#10095;</button>
             </>
           )}
 
-          {/* Fullscreen Swipe Area */}
-          <div 
-            className="w-full h-[60vh] flex items-center justify-center touch-pan-y"
+          <div
+            className="w-full h-[70vh] flex items-center justify-center touch-pan-y"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -174,33 +122,14 @@ export default function ProductGallery({ product }) {
             <img
               src={getFullUrl(product.images[currentImage])}
               alt={product.title}
-              className={`max-w-[95vw] max-h-[75vh] object-contain rounded-xl select-none transition-all duration-200 ease-in-out ${
-                isFading ? "opacity-0 translate-x-4" : "opacity-100 translate-x-0"
-              }`}
+              className={`max-w-[90vw] max-h-[80vh] object-contain select-none transition-all duration-150 ease-in-out ${isFading ? "opacity-0 scale-98" : "opacity-100 scale-100"
+                }`}
             />
           </div>
 
-          {/* Counter */}
-          <div className="absolute bottom-32 text-gray-300 font-medium text-sm">
+          <div className="absolute bottom-12 text-gray-400 font-normal text-sm tracking-wider">
             {currentImage + 1} / {product?.images?.length}
           </div>
-
-          {/* Bottom Thumbnails */}
-          {product?.images?.length > 1 && (
-            <div className="absolute bottom-8 flex gap-3 overflow-x-auto max-w-[95vw] px-4 py-2">
-              {product.images.map((image, index) => (
-                <img
-                  key={index}
-                  src={getFullUrl(image)}
-                  alt=""
-                  onClick={() => triggerImageChange(index)}
-                  className={`w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover cursor-pointer border-2 transition-all duration-200 shrink-0 ${
-                    currentImage === index ? "border-white scale-110 shadow-xl" : "border-transparent opacity-50"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
         </div>
       )}
     </>
