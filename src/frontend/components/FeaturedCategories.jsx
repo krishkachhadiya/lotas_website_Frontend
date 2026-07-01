@@ -11,10 +11,7 @@ export default function FeaturedCategories() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch(
-          `${API_URL}/categories`
-        );
-
+        const response = await fetch(`${API_URL}/categories`);
         const data = await response.json();
 
         setCategories(
@@ -53,8 +50,8 @@ export default function FeaturedCategories() {
           </h2>
         </div>
 
-        {/* Categories */}
-        <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
+        {/* Categories Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
           {activeCategories.map((category) => (
             <Link
@@ -62,8 +59,19 @@ export default function FeaturedCategories() {
               to={`/products?category=${category.slug}`}
               className="group bg-white border border-gray-200 rounded-2xl p-4 md:p-6 hover:border-[#1CA16B] hover:shadow-lg transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#1CA16B]/10 flex items-center justify-center mb-4 text-xl">
-                📦
+              {/* Category Image Wrapper */}
+              <div className="w-full h-32 rounded-xl bg-gray-100 flex items-center justify-center mb-4 overflow-hidden">
+                <img 
+                  // Because 'public' is served at the root, we start directly from /uploads/
+                  src={`/public/${category.slug}.jpg`} 
+                  alt={category.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  onError={(e) => {
+                    // Fallback image if a category image is missing or named differently (.png, etc.)
+                    e.target.onerror = null; 
+                    e.target.src = "https://placehold.co/300x200?text=No+Image"; 
+                  }}
+                />
               </div>
 
               <h3 className="text-sm md:text-lg font-semibold text-[#1D3549] group-hover:text-[#1CA16B] transition">
