@@ -1,4 +1,3 @@
-
 import { apiFetch } from "../../../lib/api";
 import TextEditor from "../../../components/editor/TextEditor";
 import { useEffect, useState } from "react";
@@ -13,7 +12,7 @@ export default function AddProductPage() {
   // STATES
   // ======================
   const [categories, setCategories] = useState([]);
-  const [productIdExists, setProductIdExists] = useState(false);
+  const [productCodeExists, setProductCodeExists] = useState(false); // Changed state name
   const [existingProducts, setExistingProducts] = useState([]);
   const [productExists, setProductExists] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -21,7 +20,7 @@ export default function AddProductPage() {
   const [slugExists, setSlugExists] = useState(false);
 
   const [formData, setFormData] = useState({
-    productId: "",
+    productCode: "", // Perfectly aligns with your new DB schema
     title: "",
     slug: "",
     description: "",
@@ -211,32 +210,31 @@ export default function AddProductPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
 
-          {/* Product ID */}
-          {/* Product ID */}
+          {/* Product Code */}
           <div>
             <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2 md:mb-3">
               Product Code *
             </label>
 
-            {productIdExists && (
+            {productCodeExists && (
               <p className="text-red-500 text-sm mt-2">
-                Product ID already exists
+                Product Code already exists
               </p>
             )}
 
             <input
               required
               type="text"
-              value={formData.productId}
+              value={formData.productCode} // Tracks field smoothly
               onChange={(e) => {
                 const value = e.target.value;
                 const exists = existingProducts.some(
                   (item) =>
-                    item.productId?.trim().toLowerCase() ===
+                    item.productCode?.trim().toLowerCase() ===
                     value.trim().toLowerCase()
                 );
-                setProductIdExists(exists);
-                setFormData({ ...formData, productId: value, });
+                setProductCodeExists(exists);
+                setFormData({ ...formData, productCode: value });
               }}
               className="w-full border border-gray-300 bg-white text-black p-3.5 md:p-4 rounded-xl outline-none focus:ring-2 focus:ring-black text-sm md:text-base"
             />
@@ -485,7 +483,7 @@ export default function AddProductPage() {
 
           {/* Submit */}
           <button
-            disabled={productIdExists || productExists || slugExists}
+            disabled={productCodeExists || productExists || slugExists}
             className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-xl text-base md:text-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create Product

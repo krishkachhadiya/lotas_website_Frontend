@@ -1,4 +1,3 @@
-
 import { apiFetch } from "../../../lib/api";
 import TextEditor from "../../../components/editor/TextEditor";
 import { useEffect, useState } from "react";
@@ -31,7 +30,7 @@ export default function EditProductPage() {
   // STATES
   // ======================
   const [categories, setCategories] = useState([]);
-  const [productIdExists, setProductIdExists] = useState(false);
+  const [productCodeExists, setProductCodeExists] = useState(false); // Changed from productIdExists
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [isSlugEdited, setIsSlugEdited] = useState(false);
@@ -41,7 +40,7 @@ export default function EditProductPage() {
 
   const [formData, setFormData] = useState({
     _id: "",
-    productId: "",
+    productCode: "", // Tracks productCode natively now
     title: "",
     slug: "",
     description: "",
@@ -79,7 +78,7 @@ export default function EditProductPage() {
         if (product) {
           setFormData({
             _id: product._id || product.id || "",
-            productId: product.productId || "",
+            productCode: product.productCode || "", // Updated to productCode
             title: product.title || "",
             slug: product.slug || "",
             description: product.description || "",
@@ -176,8 +175,8 @@ export default function EditProductPage() {
       return;
     }
 
-    if (productExists || slugExists) {
-      alert("Please resolve duplicate Title or Slug validation issues before saving.");
+    if (productExists || slugExists || productCodeExists) {
+      alert("Please resolve duplicate validation issues before saving.");
       return;
     }
 
@@ -228,38 +227,37 @@ export default function EditProductPage() {
         {/* Form */}
         <form onSubmit={handleUpdate} className="space-y-6 md:space-y-8">
 
-          {/* Product ID */}
-          {/* Product ID */}
+          {/* Product Code */}
           <div>
             <label className="block text-base md:text-lg font-semibold text-gray-700 mb-2 md:mb-3">
               Product Code *
             </label>
 
-            {productIdExists && (
+            {productCodeExists && (
               <p className="text-red-500 text-sm mt-2 mb-2">
-                Product ID already exists
+                Product Code already exists
               </p>
             )}
 
             <input
               required
               type="text"
-              value={formData.productId}
+              value={formData.productCode} // Checked against productCode track
               onChange={(e) => {
                 const value = e.target.value;
 
                 const exists = existingProducts.some(
                   (item) =>
                     (item._id || item.id) !== id &&
-                    item.productId?.trim().toLowerCase() ===
+                    item.productCode?.trim().toLowerCase() ===
                     value.trim().toLowerCase()
                 );
 
-                setProductIdExists(exists);
+                setProductCodeExists(exists);
 
                 setFormData({
                   ...formData,
-                  productId: value,
+                  productCode: value,
                 });
               }}
               className="w-full border border-gray-300 bg-white text-black p-3.5 md:p-4 rounded-xl outline-none focus:ring-2 focus:ring-black text-sm md:text-base"
@@ -483,7 +481,7 @@ export default function EditProductPage() {
 
           {/* Submit */}
           <button
-            disabled={productIdExists || productExists || slugExists}
+            disabled={productCodeExists || productExists || slugExists}
             className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white px-8 md:px-10 py-3.5 md:py-4 rounded-xl text-base md:text-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Update Product
